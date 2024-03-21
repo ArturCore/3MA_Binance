@@ -3,13 +3,7 @@ import numpy as np
 
 # Запускаємо стратегію
 def handle(data):
-    api_key = 'dKo4mbL40Z83HbqttLEbgc3SGAC2W8clfNEtHrWwxD9eqghwm6OUWIdpvFFVygw3'
-    api_secret = '6CVw2c0aV4gjsrirUTQg9NLd0U7S9nTu9n0uoM2Sn2fBA2Gulx35lRSfd0I81y2i'
-    symbol = 'BTCUSDT'
-    short_period = 10  # Короткий період MA
-    long_period = 50  # Довгий період MA 
-
-    data["Result"] = main(api_key, api_secret, symbol, short_period, long_period)
+    data["Result"] = main(data["api_key"], data["api_secret"], data["symbol"], data["short_period"], data["long_period"])
     return data
 
 # Функція для отримання поточних Klines (свічок)
