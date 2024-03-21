@@ -10,6 +10,7 @@ def handle(data):
     long_period = 50  # Довгий період MA 
 
     data["Result"] = main(api_key, api_secret, symbol, short_period, long_period)
+    data["test"] = 'aloe'
     return data
 
 # Функція для отримання поточних Klines (свічок)
