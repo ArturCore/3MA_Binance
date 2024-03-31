@@ -53,8 +53,12 @@ def main(data):
         x = [i for i in range(step_back)]
         y_signal = df['signal'].iloc[-step_back:].values
         y_macd = df['macd'].iloc[-step_back:].values
-        slope_macd, intercept_macd, r_macd, p_macd, std_err_macd = linregress(x, y_macd)
-        slope_signal, intercept_signal, r_signal, p_signal, std_err_signal = linregress(x, y_signal)
+        slope_macd, intercept_macd = np.linalg.lstsq(np.vstack([x, np.ones(len(x))]).T, 
+                                               y_macd,
+                                               rcond=None)[0]
+        slope_signal, intercept_signal = np.linalg.lstsq(np.vstack([x, np.ones(len(x))]).T, 
+                                                   y_signal,
+                                                   rcond=None)[0]
         tg_of_angle = abs((slope_signal-slope_macd) / (1 + slope_signal*slope_macd))
         data['calculated_angle'] = round(np.arctan(tg_of_angle) * 180 / np.pi, 4)
 
