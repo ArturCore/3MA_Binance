@@ -32,7 +32,8 @@ def rma(x, n):
 def main(data):
     try:
         client = Client(data['api_key'], data['api_secret'], testnet=True)
-
+        result = {}
+        
         klines = get_klines(client, data['symbol'], data['interval'], data['limit'])
         df = pd.DataFrame({'close': [float(kline[4]) for kline in klines]}) # Закриття свічки
 
@@ -42,10 +43,10 @@ def main(data):
         df['macd'] = df['ema_fast'] - df['ema_long']
         df['signal'] = df["macd"].ewm(span=data['signal_period'], adjust=False).mean()
 
-        data['prev_macd'] = df['macd'].iloc[-2].round(4)
-        data['last_macd'] = df['macd'].iloc[-1].round(4)
-        data['prev_signal'] = df['signal'].iloc[-2].round(4)
-        data['last_signal'] = df['signal'].iloc[-1].round(4)
+        result['prev_macd'] = df['macd'].iloc[-2].round(4)
+        result['last_macd'] = df['macd'].iloc[-1].round(4)
+        result['prev_signal'] = df['signal'].iloc[-2].round(4)
+        result['last_signal'] = df['signal'].iloc[-1].round(4)
 
         # MACD crossover angle calculation
         step_back = 2
@@ -59,7 +60,7 @@ def main(data):
                                                    y_signal,
                                                    rcond=None)[0]
         tg_of_angle = abs((slope_signal-slope_macd) / (1 + slope_signal*slope_macd))
-        data['calculated_angle'] = round(np.arctan(tg_of_angle) * 180 / np.pi, 4)
+        result['calculated_angle'] = round(np.arctan(tg_of_angle) * 180 / np.pi, 4)
 
         # RSI calculation
         df['change'] = df['close'].diff()
@@ -69,13 +70,14 @@ def main(data):
         df['avg_loss'] = rma(df.loss.to_numpy(), 14)
         df['rs'] = df.avg_gain / df.avg_loss
         df['rsi'] = 100 - (100 / (1 + df.rs))
-        data['prev_rsi'] = df['rsi'].iloc[-2].round(4)
-        data['last_rsi'] = df['rsi'].iloc[-1].round(4)
+        result['prev_rsi'] = df['rsi'].iloc[-2].round(4)
+        result['last_rsi'] = df['rsi'].iloc[-1].round(4)
 
+        data['result'] = result
         return data
 
     except Exception as e:
-        data['ErrorDescription'] = srt(e)
+        data['result'] = srt(e)
         return data
 
 
