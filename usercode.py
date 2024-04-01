@@ -1,7 +1,6 @@
 from binance.client import Client
 import numpy as np
 import pandas as pd
-from scipy.stats import linregress
 
 # Запускаємо стратегію
 def handle(data):
@@ -76,8 +75,8 @@ def main(data):
         return data
 
     except Exception as e:
-        print('Помилка:', e)
-        return None
+        data['ErrorDescription'] = srt(e)
+        return data
 
 
 # PARAMETERS
