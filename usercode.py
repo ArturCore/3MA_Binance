@@ -31,7 +31,11 @@ def rma(x, n):
 # Головна функція для стратегії
 def main(data):
     try:
-        client = Client(data['api_key'], data['api_secret'], testnet=True)
+        if data['environment'] == 'Production':
+            client = Client(data['api_key'], data['api_secret'])
+        else:
+            client = Client(data['api_key'], data['api_secret'], testnet=True)
+        
         result = {}
         
         klines = get_klines(client, data['symbol'], data['interval'], data['limit'])
