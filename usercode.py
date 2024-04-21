@@ -31,6 +31,7 @@ def rma(x, n):
 # Головна функція для стратегії
 def main(data):
     try:
+        # Connection to binance
         if data['environment'] == 'Production':
             client = Client(data['api_key'], data['api_secret'])
         else:
@@ -38,8 +39,11 @@ def main(data):
         
         result = {}
         
+        # Get last data from binance about price
         klines = get_klines(client, data['symbol'], data['interval'], data['limit'])
-        df = pd.DataFrame({'close': [float(kline[4]) for kline in klines]}) # Закриття свічки
+        df = pd.DataFrame({'close': [float(kline[4]) for kline in klines],
+                           'close_time': [kline[6] for kline in klines]})
+        df['close_time'] = pd.to_datetime(df['close_time'], unit='ms')
 
         # MACD calculation
         df['ema_fast'] = df["close"].ewm(span=data['short_period'], adjust=False, min_periods=data['short_period']).mean() 
@@ -47,16 +51,30 @@ def main(data):
         df['macd'] = df['ema_fast'] - df['ema_long']
         df['signal'] = df["macd"].ewm(span=data['signal_period'], adjust=False).mean()
 
-        result['prev_macd'] = df['macd'].iloc[-2].round(4)
-        result['last_macd'] = df['macd'].iloc[-1].round(4)
-        result['prev_signal'] = df['signal'].iloc[-2].round(4)
-        result['last_signal'] = df['signal'].iloc[-1].round(4)
+        # RSI calculation
+        df['change'] = df['close'].diff()
+        df['gain'] = df.change.mask(df.change < 0, 0.0)
+        df['loss'] = -df.change.mask(df.change > 0, -0.0)
+        df['avg_gain'] = rma(df.gain.to_numpy(), data['window'])
+        df['avg_loss'] = rma(df.loss.to_numpy(), data['window'])
+        df['rs'] = df.avg_gain / df.avg_loss
+        df['rsi'] = 100 - (100 / (1 + df.rs))
 
-        # MACD crossover angle calculation
+        # Indeces of values for further calculations
+        prev_index = -3
+        last_index = -2
+
+        # Save MACD indicators for further applying in logic
+        result['prev_macd'] = df['macd'].iloc[prev_index].round(4)
+        result['last_macd'] = df['macd'].iloc[last_index].round(4)
+        result['prev_signal'] = df['signal'].iloc[prev_index].round(4)
+        result['last_signal'] = df['signal'].iloc[last_index].round(4)
+
+        # Calculate MACD crossover angle for further applying in logic
         step_back = 2
         x = [i for i in range(step_back)]
-        y_signal = df['signal'].iloc[-step_back:].values
-        y_macd = df['macd'].iloc[-step_back:].values
+        y_signal = df['signal'].iloc[prev_index:last_index+1].values
+        y_macd = df['macd'].iloc[prev_index:last_index+1].values
         slope_macd, intercept_macd = np.linalg.lstsq(np.vstack([x, np.ones(len(x))]).T, 
                                                y_macd,
                                                rcond=None)[0]
@@ -66,22 +84,20 @@ def main(data):
         tg_of_angle = abs((slope_signal-slope_macd) / (1 + slope_signal*slope_macd))
         result['calculated_angle'] = round(np.arctan(tg_of_angle) * 180 / np.pi, 4)
 
-        # RSI calculation
-        df['change'] = df['close'].diff()
-        df['gain'] = df.change.mask(df.change < 0, 0.0)
-        df['loss'] = -df.change.mask(df.change > 0, -0.0)
-        df['avg_gain'] = rma(df.gain.to_numpy(), 14)
-        df['avg_loss'] = rma(df.loss.to_numpy(), 14)
-        df['rs'] = df.avg_gain / df.avg_loss
-        df['rsi'] = 100 - (100 / (1 + df.rs))
-        result['prev_rsi'] = df['rsi'].iloc[-2].round(4)
-        result['last_rsi'] = df['rsi'].iloc[-1].round(4)
+        # Save RSI indicators for further applying in logic
+        result['prev_rsi'] = df['rsi'].iloc[prev_index].round(4)
+        result['last_rsi'] = df['rsi'].iloc[last_index].round(4)
+
+        # Save dates which used in calculations for debugging
+        date_format = '%Y-%m-%d %H:%M:%S'
+        result['prev_close_date'] = df['close_time'].iloc[prev_index].strftime(date_format)
+        result['last_close_date'] = df['close_time'].iloc[last_index].strftime(date_format)
 
         data['result'] = result
         return data
 
     except Exception as e:
-        data['result'] = srt(e)
+        data['result'] = str(e)
         return data
 
 
