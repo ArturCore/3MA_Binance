@@ -93,6 +93,9 @@ def main(data):
         result['prev_close_date'] = df['close_time'].iloc[prev_index].strftime(date_format)
         result['last_close_date'] = df['close_time'].iloc[last_index].strftime(date_format)
 
+        # Save last price
+        result['last_price'] = df['close'].iloc[-1]
+
         data['result'] = result
         return data
 
