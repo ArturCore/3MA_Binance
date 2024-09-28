@@ -156,6 +156,30 @@ def main(data):
         return data
 
 
+# Input Constants
+# data['symbol'] = "BTCUSDT";
+# # data['interval'] = "5m"
+# data['limit'] = 300
+# data['position_size'] = 0.0003
+# data["environment"] = "Test" # Production, Test
+
+# # Timeframes 
+# data['short_interval'] = '5m'
+# data['long_interval'] = '1h'
+# data['trend_interval'] = '1d'
+
+# # RSI Strategy
+# data['rsi_window'] = 14
+# data['rsi_middle_bound'] = 50
+# # data['upper_bound'] = 70
+# # data['lower_bound'] = 20
+
+# # MACD Strategy
+# data['macd_short_period'] = 12
+# data['macd_long_period'] = 26
+# data['signal_period'] = 9
+# # data['angle'] = 1
+
 
 # BUYING LOGIC
 # buy_first_cond = ((res['result']['macd_short(-2)'] < res['result']['signal_short(-2)']) and
