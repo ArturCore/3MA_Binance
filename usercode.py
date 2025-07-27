@@ -36,8 +36,10 @@ def main(data):
 
         table1, table2 = get_data(data['conn_string'], data['table_name1'], data['table_name2'], data['minutes_ago'])
 
-        data['table1'] = table1
-        data['table2'] = table2
+        result['table1'] = table1
+        result['table2'] = table2
+
+        data['result'] = result
         return data
 
     except Exception as e:
