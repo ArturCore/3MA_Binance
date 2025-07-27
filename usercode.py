@@ -34,7 +34,7 @@ def main(data):
     try:
         result = {}
 
-        table1, table2 = get_data(data['conn_string'], data['table_name1'], data['table_name1'], data['minutes_ago'])
+        table1, table2 = get_data(data['conn_string'], data['table_name1'], data['table_name2'], data['minutes_ago'])
 
         data['table1'] = table1
         data['table2'] = table2
